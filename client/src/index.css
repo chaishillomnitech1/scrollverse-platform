@@ -53,29 +53,30 @@
   --chart-4: var(--color-blue-700);
   --chart-5: var(--color-blue-800);
   --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  /* Cosmic Dark Theme - Deep Navy, Gold, Red Diamond */
+  --background: oklch(0.08 0.01 260);
+  --foreground: oklch(0.92 0.02 65);
+  --card: oklch(0.12 0.01 260);
+  --card-foreground: oklch(0.92 0.02 65);
+  --popover: oklch(0.12 0.01 260);
+  --popover-foreground: oklch(0.92 0.02 65);
+  --secondary: oklch(0.15 0.01 260);
+  --secondary-foreground: oklch(0.85 0.02 65);
+  --muted: oklch(0.25 0.01 260);
+  --muted-foreground: oklch(0.70 0.02 65);
+  --accent: oklch(0.65 0.25 45);
+  --accent-foreground: oklch(0.08 0.01 260);
+  --destructive: oklch(0.60 0.25 15);
+  --destructive-foreground: oklch(0.08 0.01 260);
+  --border: oklch(0.20 0.01 260);
+  --input: oklch(0.15 0.01 260);
+  --ring: oklch(0.65 0.25 45);
+  --sidebar: oklch(0.12 0.01 260);
+  --sidebar-foreground: oklch(0.92 0.02 65);
+  --sidebar-accent: oklch(0.65 0.25 45);
+  --sidebar-accent-foreground: oklch(0.08 0.01 260);
+  --sidebar-border: oklch(0.20 0.01 260);
+  --sidebar-ring: oklch(0.65 0.25 45);
 }
 
 .dark {
@@ -83,42 +84,111 @@
   --primary-foreground: var(--color-blue-50);
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
+  /* Cosmic Dark Theme - Deep Navy, Gold, Red Diamond */
+  --background: oklch(0.08 0.01 260);
+  --foreground: oklch(0.92 0.02 65);
+  --card: oklch(0.12 0.01 260);
+  --card-foreground: oklch(0.92 0.02 65);
+  --popover: oklch(0.12 0.01 260);
+  --popover-foreground: oklch(0.92 0.02 65);
+  --secondary: oklch(0.15 0.01 260);
+  --secondary-foreground: oklch(0.85 0.02 65);
+  --muted: oklch(0.25 0.01 260);
+  --muted-foreground: oklch(0.70 0.02 65);
+  --accent: oklch(0.65 0.25 45);
+  --accent-foreground: oklch(0.08 0.01 260);
+  --destructive: oklch(0.60 0.25 15);
+  --destructive-foreground: oklch(0.08 0.01 260);
+  --border: oklch(0.20 0.01 260);
+  --input: oklch(0.15 0.01 260);
+  --ring: oklch(0.65 0.25 45);
   --chart-1: var(--color-blue-300);
   --chart-2: var(--color-blue-500);
   --chart-3: var(--color-blue-600);
   --chart-4: var(--color-blue-700);
   --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --sidebar: oklch(0.12 0.01 260);
+  --sidebar-foreground: oklch(0.92 0.02 65);
+  --sidebar-accent: oklch(0.65 0.25 45);
+  --sidebar-accent-foreground: oklch(0.08 0.01 260);
+  --sidebar-border: oklch(0.20 0.01 260);
+  --sidebar-ring: oklch(0.65 0.25 45);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
+  /* Typography System */
+  html {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    --letter-spacing-tight: -0.02em;
+    --letter-spacing-normal: 0em;
+    --letter-spacing-wide: 0.02em;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+  
+  h1 {
+    font-size: var(--font-size-5xl);
+  }
+  
+  h2 {
+    font-size: var(--font-size-4xl);
+  }
+  
+  h3 {
+    font-size: var(--font-size-3xl);
+  }
+  
+  h4 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  h5 {
+    font-size: var(--font-size-xl);
+  }
+  
+  h6 {
+    font-size: var(--font-size-lg);
+  }
+  
+  p {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+  }
+  
+  small, .text-sm {
+    font-size: var(--font-size-sm);
+  }
+  
+  code, pre {
+    font-family: var(--font-mono);
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -173,5 +243,57 @@
       padding-right: 2rem;
       max-width: 1280px; /* Standard content width */
     }
+  }
+
+  /* Cosmic theme components */
+  .cosmic-card {
+    @apply bg-card border border-border rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .cosmic-button {
+    @apply px-6 py-3 bg-accent text-accent-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200 active:scale-95;
+  }
+
+  .cosmic-heading {
+    @apply text-4xl font-bold text-accent;
+  }
+
+  .frequency-badge {
+    @apply inline-block px-3 py-1 bg-accent/20 border border-accent rounded-full text-sm font-medium text-accent;
+  }
+
+  .gold-text {
+    @apply text-accent;
+  }
+
+  .red-diamond {
+    @apply text-destructive;
+  }
+}
+
+@layer utilities {
+  .cosmic-gradient {
+    background: linear-gradient(135deg, oklch(0.08 0.01 260) 0%, oklch(0.12 0.01 260) 50%, oklch(0.10 0.01 260) 100%);
+  }
+
+  .frequency-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px oklch(0.65 0.25 45 / 0.5);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 20px oklch(0.60 0.25 15 / 0.5);
   }
 }

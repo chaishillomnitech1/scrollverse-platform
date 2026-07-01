@@ -25,4 +25,30 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// Distribution tracking table
+export const distributions = mysqlTable("distributions", {
+  id: int("id").autoincrement().primaryKey(),
+  totalAmount: varchar("totalAmount", { length: 64 }).notNull(), // e.g., "$4,078,000"
+  activeWallets: int("activeWallets").notNull().default(0),
+  zakatPercentage: varchar("zakatPercentage", { length: 16 }).notNull().default("7.77"),
+  distributionCycles: int("distributionCycles").notNull().default(0),
+  lastUpdated: timestamp("lastUpdated").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Distribution = typeof distributions.$inferSelect;
+export type InsertDistribution = typeof distributions.$inferInsert;
+
+// Sovereign hashtags table
+export const sovereignHashtags = mysqlTable("sovereignHashtags", {
+  id: int("id").autoincrement().primaryKey(),
+  hashtag: varchar("hashtag", { length: 64 }).notNull().unique(), // e.g., "#MRWALKSHIT"
+  description: text("description"),
+  isActive: int("isActive").notNull().default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SovereignHashtag = typeof sovereignHashtags.$inferSelect;
+export type InsertSovereignHashtag = typeof sovereignHashtags.$inferInsert;
+
 // TODO: Add your tables here

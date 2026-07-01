@@ -5,12 +5,22 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import SovereignBroadcast from "./pages/SovereignBroadcast";
+import RedDiamondFleet from "./pages/RedDiamondFleet";
+import ZernioDistribution from "./pages/ZernioDistribution";
+import GuardianGallery from "./pages/GuardianGallery";
+import EmpireDashboard from "./pages/EmpireDashboard";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/broadcast"} component={SovereignBroadcast} />
+      <Route path={"/fleet"} component={RedDiamondFleet} />
+      <Route path={"/distribution"} component={ZernioDistribution} />
+      <Route path={"/guardians"} component={GuardianGallery} />
+      <Route path={"/dashboard"} component={EmpireDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
