@@ -39,7 +39,7 @@ async function startServer() {
     app.set("trust proxy", Number(trustedProxyHops));
   }
   const server = createServer(app);
-  
+
   // Initialize WebSocket broadcast
   initializeBroadcast(server);
   startPeriodicBroadcast(8000);
@@ -56,7 +56,11 @@ async function startServer() {
       createContext,
     })
   );
-  
+
+  // Apply the exact site-to-origin policy to the iframe document before
+  // Vite/static fallback handling. The embedded visitor API remains read-only.
+  app.use("/agent25/embed", agent25EmbedOriginGuard);
+
   // Socket.IO is automatically handled by the server instance
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
@@ -64,7 +68,7 @@ async function startServer() {
   } else {
     serveStatic(app);
   }
-  
+
   // Socket.IO middleware for CORS in production
   if (process.env.NODE_ENV !== "development") {
     // In production, Socket.IO CORS is configured in initializeBroadcast

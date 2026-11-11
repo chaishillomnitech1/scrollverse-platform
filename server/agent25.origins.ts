@@ -24,21 +24,20 @@ function parseConfiguredOrigins(): Map<string, Set<string>> {
   return mapping;
 }
 
-/** Enforce an exact parent origin for the selected embed site and emit CSP frame-ancestors. */
+/** Enforce an exact parent origin for the selected embed site and emit a site-scoped CSP. */
 export function agent25EmbedOriginGuard(req: Request, res: Response, next: NextFunction): void {
   res.vary("Referer");
   const mapping = parseConfiguredOrigins();
-  const allOrigins = new Set<string>();
-  mapping.forEach((origins) => origins.forEach((origin) => allOrigins.add(origin)));
-
-  if (process.env.NODE_ENV === "production" && allOrigins.size === 0) {
-    res.status(503).send("Agent 25 embed is not configured.");
-    return;
-  }
 
   const siteId = typeof req.query.siteId === "string" ? req.query.siteId : "generic";
   if (!VALID_SITE_IDS.has(siteId)) {
     res.status(400).send("Invalid Agent 25 site identifier.");
+    return;
+  }
+
+  const siteOrigins = mapping.get(siteId) ?? new Set<string>();
+  if (process.env.NODE_ENV === "production" && siteOrigins.size === 0) {
+    res.status(503).send("Agent 25 embed is not configured for this site.");
     return;
   }
 
@@ -51,7 +50,6 @@ export function agent25EmbedOriginGuard(req: Request, res: Response, next: NextF
       res.status(403).send("Embedding origin is not approved.");
       return;
     }
-    const siteOrigins = mapping.get(siteId) ?? new Set<string>();
     if (!siteOrigins.has(parentOrigin)) {
       res.status(403).send("Embedding origin is not approved for this site.");
       return;
@@ -61,7 +59,8 @@ export function agent25EmbedOriginGuard(req: Request, res: Response, next: NextF
     return;
   }
 
-  const ancestors = ["'self'", ...Array.from(allOrigins)].join(" ");
+  // Do not allow one approved site to frame another site's embed response.
+  const ancestors = ["'self'", ...Array.from(siteOrigins)].join(" ");
   res.setHeader("Content-Security-Policy", "frame-ancestors " + ancestors + ";");
   next();
 }
