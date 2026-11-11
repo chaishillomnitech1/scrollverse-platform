@@ -14,11 +14,11 @@ const RATE_LIMIT_SCRIPT = [
 
 function enforceLocalRateLimit(key: string): void {
   const now = Date.now();
-  for (const [client, timestamps] of localRequests) {
+  localRequests.forEach((timestamps, client) => {
     if (now - (timestamps[timestamps.length - 1] ?? 0) >= WINDOW_MS) {
       localRequests.delete(client);
     }
-  }
+  });
   if (!localRequests.has(key) && localRequests.size >= LOCAL_MAX_KEYS) {
     const oldest = localRequests.keys().next().value;
     if (oldest) localRequests.delete(oldest);
