@@ -24,16 +24,46 @@ export function validateProviderEndpoint(
   if (parsed.protocol !== "https:" && !( !isProduction && isLocalhost && parsed.protocol === "http:")) {
     return null;
   }
+  if (isProduction && (isLocalhost || (parsed.port !== "" && parsed.port !== "443"))) return null;
 
-  if (isProduction) {
-    const allowlist = new Set(allowedHosts.map((host) => host.trim().toLowerCase()).filter(Boolean));
-    if (!allowlist.has(hostname)) return null;
-  } else if (!isLocalhost && allowedHosts.length > 0) {
-    const allowlist = new Set(allowedHosts.map((host) => host.trim().toLowerCase()).filter(Boolean));
-    if (!allowlist.has(hostname)) return null;
-  }
+  const allowlist = new Set(allowedHosts.map((host) => host.trim().toLowerCase()).filter(Boolean));
+  if (isProduction && !allowlist.has(hostname)) return null;
+  if (!isProduction && !isLocalhost && allowedHosts.length > 0 && !allowlist.has(hostname)) return null;
 
   return parsed.toString();
+}
+
+/** Read a response stream with a hard byte ceiling, even if Content-Length is absent. */
+export async function readBoundedProviderBody(response: Response): Promise<string | null> {
+  if (!response.body) return null;
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_PROVIDER_RESPONSE_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return null;
+  } finally {
+    reader.releaseLock();
+  }
+
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(combined);
 }
 
 /** Parse a bounded OpenAI-compatible response without leaking provider errors. */
