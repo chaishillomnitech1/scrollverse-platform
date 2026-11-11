@@ -63,6 +63,5 @@ export function agent25EmbedOriginGuard(req: Request, res: Response, next: NextF
 
   const ancestors = ["'self'", ...allOrigins].join(" ");
   res.setHeader("Content-Security-Policy", "frame-ancestors " + ancestors + ";");
-  res.setHeader("X-Frame-Options", "SAMEORIGIN");
   next();
 }
