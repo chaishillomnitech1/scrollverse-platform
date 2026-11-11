@@ -14,10 +14,10 @@ function enforceRateLimit(key: string) {
   const now = Date.now();
   // This bounded in-memory fallback is single-process only. Multi-instance production
   // requires a shared rate-limit store and trusted-proxy configuration.
-  for (const [client, timestamps] of requestTimes) {
+  requestTimes.forEach((timestamps, client) => {
     const newest = timestamps[timestamps.length - 1] ?? 0;
     if (now - newest >= WINDOW_MS) requestTimes.delete(client);
-  }
+  });
   if (!requestTimes.has(key) && requestTimes.size >= MAX_TRACKED_CLIENTS) {
     const oldestKey = requestTimes.keys().next().value;
     if (oldestKey) requestTimes.delete(oldestKey);
