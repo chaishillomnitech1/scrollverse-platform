@@ -1,15 +1,30 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { AGENT25_AGENTS, selectAgent } from "../shared/agent25";
+import { extractProviderReply, validateProviderEndpoint, MAX_PROVIDER_RESPONSE_BYTES } from "./agent25.security";
 import { publicProcedure, router } from "./_core/trpc";
 
 const siteIds = ["scrollverse", "scrollatlas", "omnitech1", "generic"] as const;
 const requestTimes = new Map<string, number[]>();
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 10;
+const MAX_TRACKED_CLIENTS = 10_000;
 
 function enforceRateLimit(key: string) {
   const now = Date.now();
+
+  // Keep this process-local fallback bounded. Production deployments with multiple
+  // instances must add a shared rate-limit store before public expansion.
+  for (const [client, timestamps] of requestTimes) {
+    const newest = timestamps[timestamps.length - 1] ?? 0;
+    if (now - newest >= WINDOW_MS) requestTimes.delete(client);
+  }
+
+  if (!requestTimes.has(key) && requestTimes.size >= MAX_TRACKED_CLIENTS) {
+    const oldestKey = requestTimes.keys().next().value;
+    if (oldestKey) requestTimes.delete(oldestKey);
+  }
+
   const recent = (requestTimes.get(key) ?? []).filter((at) => now - at < WINDOW_MS);
   if (recent.length >= MAX_REQUESTS_PER_WINDOW) {
     throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Please wait a moment before sending another message." });
@@ -28,21 +43,46 @@ function getProviderConfig() {
       message: "Agent 25 visitor chat is not configured yet.",
     });
   }
-  let parsed: URL;
-  try {
-    parsed = new URL(endpoint);
-  } catch {
-    throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Agent 25 provider configuration is invalid." });
+
+  const allowedHosts = (process.env.AGENT25_ALLOWED_PROVIDER_HOSTS ?? "")
+    .split(",")
+    .map((host) => host.trim())
+    .filter(Boolean);
+  const validatedEndpoint = validateProviderEndpoint(endpoint, allowedHosts, process.env.NODE_ENV === "production");
+  if (!validatedEndpoint) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "Agent 25 provider endpoint is invalid or not allowlisted.",
+    });
   }
-  if (parsed.protocol !== "https:" && !(process.env.NODE_ENV !== "production" && parsed.hostname === "localhost")) {
-    throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Agent 25 provider endpoint must use HTTPS." });
+
+  if (process.env.NODE_ENV === "production" && allowedHosts.length === 0) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "Agent 25 provider host allowlist is required in production.",
+    });
   }
-  return { endpoint: parsed.toString(), apiKey, model };
+
+  return { endpoint: validatedEndpoint, apiKey, model };
 }
 
 const visitorMessage = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.string().trim().min(1).max(2000),
+});
+
+const chatInput = z.object({
+  siteId: z.enum(siteIds).default("generic"),
+  messages: z.array(visitorMessage).min(1).max(10),
+}).superRefine((value, context) => {
+  const totalChars = value.messages.reduce((total, message) => total + message.content.length, 0);
+  if (totalChars > 10_000) {
+    context.addIssue({
+      code: "custom",
+      path: ["messages"],
+      message: "The conversation is too long. Please start a new chat.",
+    });
+  }
 });
 
 const siteContext = {
@@ -54,10 +94,7 @@ const siteContext = {
 
 export const agent25Router = router({
   chat: publicProcedure
-    .input(z.object({
-      siteId: z.enum(siteIds).default("generic"),
-      messages: z.array(visitorMessage).min(1).max(10),
-    }))
+    .input(chatInput)
     .mutation(async ({ ctx, input }) => {
       const lastMessage = input.messages[input.messages.length - 1];
       if (lastMessage.role !== "user") {
@@ -113,12 +150,21 @@ export const agent25Router = router({
         throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 is temporarily unavailable. Please try again shortly." });
       }
 
-      const payload = await response.json() as {
-        choices?: Array<{ message?: { content?: string | null } }>;
-      };
-      const reply = payload.choices?.[0]?.message?.content?.trim();
+      const contentLength = Number(response.headers.get("content-length"));
+      if (Number.isFinite(contentLength) && contentLength > MAX_PROVIDER_RESPONSE_BYTES) {
+        throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 returned an invalid response. Please try again." });
+      }
+
+      let rawPayload: string;
+      try {
+        rawPayload = await response.text();
+      } catch {
+        throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 could not read the provider response. Please try again." });
+      }
+
+      const reply = extractProviderReply(rawPayload);
       if (!reply) {
-        throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 could not prepare a response. Please try again." });
+        throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 could not prepare a valid response. Please try again." });
       }
 
       return { reply, agentId: agent.id, agentName: agent.name, pillar: agent.pillar };
