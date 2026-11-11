@@ -8,7 +8,7 @@ import { z } from "zod";
 export const methodigitologyIntentSchema = z.object({
   languageVersion: z.literal("1.0.0-draft"),
   source: z.object({
-    expression: z.string().trim().min(1).max(12000),
+    expression: z.string().min(1).max(12000).refine((value) => value.trim().length > 0),
     origin: z.string().trim().min(1).max(128),
     preserveVerbatim: z.literal(true),
     sourceRef: z.string().max(2048).optional(),
