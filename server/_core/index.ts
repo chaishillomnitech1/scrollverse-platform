@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { initializeBroadcast, startPeriodicBroadcast } from "../broadcast";
+import { agent25EmbedOriginGuard } from "../agent25.origins";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +32,12 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 async function startServer() {
   const app = express();
+  const trustedProxyHops = process.env.AGENT25_TRUST_PROXY_HOPS?.trim();
+  if (trustedProxyHops && /^[1-3]$/.test(trustedProxyHops)) {
+    // Trust only the explicitly configured number of reverse-proxy hops.
+    // Never use `true`: that would trust arbitrary X-Forwarded-For chains.
+    app.set("trust proxy", Number(trustedProxyHops));
+  }
   const server = createServer(app);
   
   // Initialize WebSocket broadcast

@@ -7,7 +7,10 @@ This change hardens the public, informational visitor API. It does not activate 
 - `AGENT25_API_URL`: OpenAI-compatible chat-completions endpoint.
 - `AGENT25_API_KEY`: provider credential; store only in the hosting platform's secret manager.
 - `AGENT25_MODEL`: provider model identifier.
-- `AGENT25_ALLOWED_PROVIDER_HOSTS`: comma-separated exact hostnames permitted in production, for example `api.example-provider.com`.
+- `AGENT25_ALLOWED_PROVIDER_HOSTS`: comma-separated exact hostnames permitted in production, for example `api.openai.com`.
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: HTTPS REST credentials for the shared Redis rate-limit store.
+- `AGENT25_TRUST_PROXY_HOPS`: explicit integer proxy-hop count (1–3); do not set until the actual Vercel request path is verified.
+- `AGENT25_ALLOWED_EMBED_ORIGINS`: comma-separated `siteId=https://exact-origin` entries; no wildcards or path prefixes.
 
 Production requires HTTPS, an exact hostname match, and the default HTTPS port. URL credentials and fragments are rejected. Local HTTP endpoints are permitted only for local development. Do not put secrets in Git, browser code, issue comments, or visitor-facing configuration.
 
@@ -24,9 +27,11 @@ The allowlist is a configuration boundary, not a substitute for outbound network
 
 ## Rate limiting and proxy configuration
 
-The current limiter is bounded to 10 requests per client key per minute and caps its in-memory key map at 10,000 entries. It is process-local: it is not a shared quota across instances and resets on restart. Before multi-instance public rollout, replace it with a shared store (for example, Redis or an equivalent platform primitive).
+The visitor API uses an atomic Redis Lua fixed-window counter: 10 requests per client key per 60 seconds. The Redis key hashes the client IP. Development may use a bounded in-memory fallback; production fails closed if Redis is missing or unavailable.
 
-The host must configure trusted proxies deliberately so the server's client IP value cannot be spoofed through arbitrary forwarding headers. Do not trust all proxy hops by default.
+Express trusts only the explicitly configured numeric proxy-hop count. The Agent 25 production route fails closed unless `AGENT25_TRUST_PROXY_HOPS` is a valid integer from 1 to 3. Confirm the actual Vercel ingress chain before setting it; never use `true` or trust arbitrary forwarded headers.
+
+The embed route builds `frame-ancestors` from the exact origins in `AGENT25_ALLOWED_EMBED_ORIGINS`, and checks the request Referer against the selected `siteId`. Missing or unapproved parent origins are rejected in production. `Content-Security-Policy` is the framing control; do not add an `X-Frame-Options: SAMEORIGIN` header because it would block the approved cross-origin embeds.
 
 ## Rollout gates
 

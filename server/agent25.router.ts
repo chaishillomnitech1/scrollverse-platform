@@ -3,33 +3,9 @@ import { z } from "zod";
 import { AGENT25_AGENTS, selectAgent } from "../shared/agent25";
 import { extractProviderReply, readBoundedProviderBody, validateProviderEndpoint, MAX_PROVIDER_RESPONSE_BYTES } from "./agent25.security";
 import { publicProcedure, router } from "./_core/trpc";
+import { enforceAgent25RateLimit } from "./agent25.rate-limit";
 
 const siteIds = ["scrollverse", "scrollatlas", "omnitech1", "generic"] as const;
-const requestTimes = new Map<string, number[]>();
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS_PER_WINDOW = 10;
-const MAX_TRACKED_CLIENTS = 10_000;
-
-function enforceRateLimit(key: string) {
-  const now = Date.now();
-  // This bounded in-memory fallback is single-process only. Multi-instance production
-  // requires a shared rate-limit store and trusted-proxy configuration.
-  requestTimes.forEach((timestamps, client) => {
-    const newest = timestamps[timestamps.length - 1] ?? 0;
-    if (now - newest >= WINDOW_MS) requestTimes.delete(client);
-  });
-  if (!requestTimes.has(key) && requestTimes.size >= MAX_TRACKED_CLIENTS) {
-    const oldestKey = requestTimes.keys().next().value;
-    if (oldestKey) requestTimes.delete(oldestKey);
-  }
-  const recent = (requestTimes.get(key) ?? []).filter((at) => now - at < WINDOW_MS);
-  if (recent.length >= MAX_REQUESTS_PER_WINDOW) {
-    throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Please wait a moment before sending another message." });
-  }
-  recent.push(now);
-  requestTimes.set(key, recent);
-}
-
 function getProviderConfig() {
   const endpoint = process.env.AGENT25_API_URL?.trim();
   const apiKey = process.env.AGENT25_API_KEY?.trim();
@@ -78,8 +54,20 @@ export const agent25Router = router({
       throw new TRPCError({ code: "BAD_REQUEST", message: "The latest chat message must be from the visitor." });
     }
 
-    const clientKey = ctx.req.ip || ctx.req.socket.remoteAddress || "unknown-visitor";
-    enforceRateLimit(clientKey);
+    const proxyHops = process.env.AGENT25_TRUST_PROXY_HOPS?.trim();
+    if (process.env.NODE_ENV === "production" && (!proxyHops || !/^[1-3]$/.test(proxyHops))) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Agent 25 trusted-proxy configuration is required." });
+    }
+    const clientKey = ctx.req.ip || ctx.req.socket.remoteAddress;
+    if (!clientKey) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 visitor chat is temporarily unavailable." });
+    try {
+      await enforceAgent25RateLimit(clientKey);
+    } catch (error) {
+      if (error instanceof Error && error.message === "RATE_LIMITED") {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Please wait a moment before sending another message." });
+      }
+      throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Agent 25 visitor chat is temporarily unavailable." });
+    }
     const agent = selectAgent(lastMessage.content);
     const provider = getProviderConfig();
     const systemPrompt = [
