@@ -6,7 +6,7 @@ import { distributionRouter } from "./distribution.router";
 import { agent25Router } from "./agent25.router";
 
 export const appRouter = router({
-  // All public visitor-facing capabilities must remain informational and read-only.
+  // Public visitor-facing features must remain informational and read-only.
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
