@@ -21,20 +21,20 @@ export default function Agent25VisitorChat({ embedded = false, siteId }: Props) 
   const chat = trpc.agent25.chat.useMutation({
     onSuccess: (result) => {
       setMessages((current) => [...current, {
-        role: "assistant",
+        role: "assistant" as const,
         content: result.reply + "\n\n— Agent " + result.agentId + " · " + result.agentName,
       }].slice(-12));
     },
     onError: () => {
       setMessages((current) => [...current, {
-        role: "assistant",
+        role: "assistant" as const,
         content: "Agent 25 is not configured or is temporarily unavailable. Please try again later.",
       }].slice(-12));
     },
   });
 
   const send = (content: string) => {
-    const next: Message[] = [...messages, { role: "user", content }].slice(-10);
+    const next: Message[] = [...messages, { role: "user" as const, content }].slice(-10);
     setMessages(next);
     chat.mutate({
       siteId: siteId ?? detectSiteId(),
