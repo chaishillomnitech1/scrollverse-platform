@@ -36,7 +36,13 @@ export default function Agent25VisitorChat({ embedded = false, siteId }: Props) 
   const send = (content: string) => {
     const next = [...messages, { role: "user" as const, content }].slice(-10);
     setMessages(next);
-    chat.mutate({\n      siteId: siteId ?? detectSiteId(),\n      messages: next.map((message) => ({\n        role: message.role === "assistant" ? "assistant" as const : "user" as const,\n        content: message.content,\n      })),\n    });
+    chat.mutate({
+      siteId: siteId ?? detectSiteId(),
+      messages: next.map((message) => ({
+        role: message.role === "assistant" ? "assistant" as const : "user" as const,
+        content: message.content,
+      })),
+    });
   };
 
   if (typeof window !== "undefined" && window.location.pathname === "/agent25/embed" && !embedded) {
