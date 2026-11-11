@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { AGENT25_AGENTS, selectAgent } from "../shared/agent25";
+import { formatMethodigitologyContext, methodigitologyIntentSchema } from "../shared/methodigitology";
 import { extractProviderReply, readBoundedProviderBody, validateProviderEndpoint, MAX_PROVIDER_RESPONSE_BYTES } from "./agent25.security";
 import { publicProcedure, router } from "./_core/trpc";
 import { enforceAgent25RateLimit } from "./agent25.rate-limit";
@@ -33,8 +34,12 @@ const visitorMessage = z.object({
 const chatInput = z.object({
   siteId: z.enum(siteIds).default("generic"),
   messages: z.array(visitorMessage).min(1).max(10),
+  intent: methodigitologyIntentSchema.optional(),
 }).superRefine((value, context) => {
   const totalChars = value.messages.reduce((total, message) => total + message.content.length, 0);
+  if (value.intent && value.intent.source.expression !== value.messages[value.messages.length - 1]?.content) {
+    context.addIssue({ code: "custom", path: ["intent", "source", "expression"], message: "The verbatim source expression must exactly match the latest visitor message." });
+  }
   if (totalChars > 10_000) {
     context.addIssue({ code: "custom", path: ["messages"], message: "The conversation is too long. Please start a new chat." });
   }
@@ -76,6 +81,7 @@ export const agent25Router = router({
       "Selected specialist: Agent " + agent.id + " — " + agent.name + " (" + agent.pillar + ").",
       "The 25 specialist roles are: " + AGENT25_AGENTS.map((item) => item.id + " " + item.name).join("; ") + ".",
       siteContext[input.siteId],
+      ...(input.intent ? [formatMethodigitologyContext(input.intent)] : []),
       "Answer clearly, warmly, and concisely. Help visitors discover public ScrollVerse ecosystem information.",
       "Never claim access to private repositories, private conversations, visitor accounts, wallets, payment systems, credentials, or unpublished archives.",
       "Never invent project status, financial value, token balances, deployments, partnerships, tests, or capabilities. Distinguish a published claim from independently verified evidence.",
