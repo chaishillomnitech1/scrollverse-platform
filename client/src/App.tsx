@@ -10,11 +10,13 @@ import RedDiamondFleet from "./pages/RedDiamondFleet";
 import ZernioDistribution from "./pages/ZernioDistribution";
 import GuardianGallery from "./pages/GuardianGallery";
 import EmpireDashboard from "./pages/EmpireDashboard";
+import Agent25Embed from "./pages/Agent25Embed";
+import Agent25VisitorChat from "./components/Agent25VisitorChat";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
+      <Route path={"/agent25/embed"} component={Agent25Embed} />
       <Route path={"/"} component={Home} />
       <Route path={"/broadcast"} component={SovereignBroadcast} />
       <Route path={"/fleet"} component={RedDiamondFleet} />
@@ -22,27 +24,19 @@ function Router() {
       <Route path={"/guardians"} component={GuardianGallery} />
       <Route path={"/dashboard"} component={EmpireDashboard} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
+          <Agent25VisitorChat />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
