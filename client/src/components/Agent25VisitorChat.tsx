@@ -34,7 +34,7 @@ export default function Agent25VisitorChat({ embedded = false, siteId }: Props) 
   });
 
   const send = (content: string) => {
-    const next = [...messages, { role: "user" as const, content }].slice(-10);
+    const next: Message[] = [...messages, { role: "user", content }].slice(-10);
     setMessages(next);
     chat.mutate({
       siteId: siteId ?? detectSiteId(),
