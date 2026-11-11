@@ -31,7 +31,7 @@ export type Agent25SiteId = "scrollverse" | "scrollatlas" | "omnitech1" | "gener
 
 export function selectAgent(message: string): Agent25Definition {
   const normalized = message.toLowerCase();
-  let best = AGENT25_AGENTS[24];
+  let best: Agent25Definition = AGENT25_AGENTS[24];
   let bestScore = 0;
   for (const agent of AGENT25_AGENTS) {
     const score = agent.keywords.reduce((total, keyword) => total + (normalized.includes(keyword) ? 1 : 0), 0);
