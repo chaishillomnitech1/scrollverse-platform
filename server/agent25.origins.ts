@@ -29,7 +29,7 @@ export function agent25EmbedOriginGuard(req: Request, res: Response, next: NextF
   res.vary("Referer");
   const mapping = parseConfiguredOrigins();
   const allOrigins = new Set<string>();
-  for (const origins of mapping.values()) for (const origin of origins) allOrigins.add(origin);
+  mapping.forEach((origins) => origins.forEach((origin) => allOrigins.add(origin)));
 
   if (process.env.NODE_ENV === "production" && allOrigins.size === 0) {
     res.status(503).send("Agent 25 embed is not configured.");
@@ -61,7 +61,7 @@ export function agent25EmbedOriginGuard(req: Request, res: Response, next: NextF
     return;
   }
 
-  const ancestors = ["'self'", ...allOrigins].join(" ");
+  const ancestors = ["'self'", ...Array.from(allOrigins)].join(" ");
   res.setHeader("Content-Security-Policy", "frame-ancestors " + ancestors + ";");
   next();
 }
