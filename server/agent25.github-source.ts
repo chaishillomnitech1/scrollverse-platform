@@ -195,8 +195,14 @@ export async function searchAllowlistedPublicGitHub(
 }
 
 export function isGitHubResearchQuestion(message: string): boolean {
-  return /\b(github|repositories|repository|repos?|codebase|readme|commit|branch|source files?)\b/i.test(message) ||
-    PUBLIC_GITHUB_REPOSITORY_INDEX.has("chaishillomnitech1/" + message.trim());
+  const normalized = message.toLowerCase();
+  if (/\b(github|repositories|repository|repos?|codebase|readme|commit|branch|source files?)\b/i.test(message)) {
+    return true;
+  }
+  return Array.from(PUBLIC_GITHUB_REPOSITORY_INDEX.keys()).some((fullName) => {
+    const repositoryName = fullName.split("/")[1]?.toLowerCase();
+    return Boolean(repositoryName && repositoryName.length >= 4 && normalized.includes(repositoryName));
+  });
 }
 
 export function formatGitHubSourceContext(sources: PublicGitHubSource[]): string {
