@@ -23,3 +23,8 @@ This repository contains the ScrollVerse Platform service layer, including Agent
 The specialist profile is drafted, not evidence of a continuously running autonomous agent. Changes are proposed through feature branches and pull requests. No default-branch writes, production deployment, secret access, or permission grants are authorized by this profile.
 
 **Trademark status:** proposed identity; official clearance and registration have not been researched or claimed.
+
+
+## Federated interfaces
+
+The canonical event envelope and validator are documented in [interfaces/README.md](interfaces/README.md). The Zod schema and conformance tests are in [shared/federation](shared/federation/). This establishes a versioned validation boundary; transport adapters remain a separate implementation gate.
