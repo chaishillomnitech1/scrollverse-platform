@@ -20,9 +20,14 @@ export default function Agent25VisitorChat({ embedded = false, siteId }: Props) 
   const [messages, setMessages] = useState<Message[]>([]);
   const chat = trpc.agent25.chat.useMutation({
     onSuccess: (result) => {
+      const citations = result.sources?.length
+        ? "\n\nPublic GitHub sources:\n" + result.sources.map((source) =>
+            `• ${source.path} (L${source.lineStart}-L${source.lineEnd}) — ${source.url}`
+          ).join("\n")
+        : "";
       setMessages((current) => [...current, {
         role: "assistant" as const,
-        content: result.reply + "\n\n— Agent " + result.agentId + " · " + result.agentName,
+        content: result.reply + citations + "\n\n— Agent " + result.agentId + " · " + result.agentName,
       }].slice(-12));
     },
     onError: () => {
