@@ -77,6 +77,14 @@ describe("Agent 25 AURELLION GitHub staging boundary", () => {
     expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
+  it("fails open to an empty evidence set when the public GitHub API is unavailable", async () => {
+    const fetchMock = vi.fn(async () => new Response("unavailable", { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getAurellionGithubEvidence("AURELLION GitHub implementation")).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
+
   it("reports only the line range actually present in a truncated citation excerpt", () => {
     const longFirstLine = "AURELLION " + "x".repeat(900);
     const source = {
