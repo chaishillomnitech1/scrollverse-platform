@@ -121,7 +121,7 @@ async function loadPublicDocuments(): Promise<PublicDocument[]> {
 
 function termsFor(query: string): string[] {
   const ignored = new Set(["the", "and", "for", "with", "from", "that", "this", "what", "how", "does", "are", "you", "about", "into", "have", "can", "will"]);
-  return [...new Set((query.toLowerCase().match(/[a-z0-9_-]{3,}/g) ?? []).filter((term) => !ignored.has(term))].slice(0, 24);
+  return [...new Set((query.toLowerCase().match(/[a-z0-9_-]{3,}/g) ?? []).filter((term) => !ignored.has(term)))].slice(0, 24);
 }
 
 export function rankAurellionEvidence(
