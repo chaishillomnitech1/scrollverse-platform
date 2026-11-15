@@ -25,13 +25,13 @@ The code fails closed unless all three checks pass. A production deployment (`VE
 - Retrieved documents are cached in process memory for five minutes.
 - Retrieval is only attempted for GitHub, repository, AURELLION, Agent 25, code, architecture, implementation, and public-artifact questions.
 - Retrieval failures are non-fatal; Agent 25 continues without GitHub evidence.
-- Returned citations include the source path, line range, Git blob SHA, and SHA-256 digest.
+- Returned citations include the source path, exact displayed line range, Git blob SHA, and SHA-256 digest. Truncated excerpts report only lines actually present in the excerpt.
 
 The GitHub API is accessed without a credential because all sources are public. No GitHub token is requested, stored, or exposed.
 
 ## Prompt-injection boundary
 
-Retrieved text is passed as untrusted reference material. The system instructions explicitly prohibit following instructions contained in repository excerpts. Visitors cannot select a repository, branch, file path, token, or retrieval URL.
+Retrieved excerpts are sent as a separate, explicitly delimited user-role evidence message, never as an assistant-role message. The system instructions identify the excerpts as untrusted quoted data and prohibit following commands, role changes, or requests inside the material. Visitor messages remain separate. Visitors cannot select a repository, branch, file path, token, or retrieval URL.
 
 ## Existing visitor experience
 
@@ -47,4 +47,4 @@ The existing chat widget, site IDs, role selector, provider boundary, origin che
 6. Validate the visitor experience on the staging domain and approved embed origin.
 7. Obtain separate approval before any production activation.
 
-This PR creates code and documentation only. It does not create or modify Vercel projects, secrets, billing, DNS, domains, GitHub permissions, production variables, production deployments, or the live visitor experience. A merged PR is not evidence that staging is deployed or active.
+The initial integration was merged in PR #10. This follow-up corrects citation bounds and strengthens untrusted-evidence message isolation. Neither change activates staging. Vercel project creation, Preview configuration, deployment, and visitor validation remain separate release gates. Production remains untouched.
