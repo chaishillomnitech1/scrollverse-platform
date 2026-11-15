@@ -63,8 +63,8 @@ async function loadPublicDocuments(): Promise<PublicDocument[]> {
   if (cachedDocuments.length > 0 && now - cachedAt < CACHE_TTL_MS) return cachedDocuments;
   if (pendingLoad) return pendingLoad;
 
-  pendingLoad = (async () => {
-    const results = await Promise.all(ALLOWED_PATHS.map(async (path) => {
+  const loadPromise: Promise<PublicDocument[]> = (async (): Promise<PublicDocument[]> => {
+    const results = await Promise.all(ALLOWED_PATHS.map(async (path): Promise<PublicDocument | null> => {
       const url = `https://api.github.com/repos/${REPOSITORY}/contents/${path}?ref=${REF}`;
       try {
         const response = await fetch(url, {
@@ -111,17 +111,18 @@ async function loadPublicDocuments(): Promise<PublicDocument[]> {
     }
     return documents;
   })();
+  pendingLoad = loadPromise;
 
   try {
-    return await pendingLoad;
+    return await loadPromise;
   } finally {
-    pendingLoad = null;
+    if (pendingLoad === loadPromise) pendingLoad = null;
   }
 }
 
 function termsFor(query: string): string[] {
   const ignored = new Set(["the", "and", "for", "with", "from", "that", "this", "what", "how", "does", "are", "you", "about", "into", "have", "can", "will"]);
-  return [...new Set((query.toLowerCase().match(/[a-z0-9_-]{3,}/g) ?? []).filter((term) => !ignored.has(term)))].slice(0, 24);
+  return Array.from(new Set((query.toLowerCase().match(/[a-z0-9_-]{3,}/g) ?? []).filter((term) => !ignored.has(term)))).slice(0, 24);
 }
 
 export function rankAurellionEvidence(
