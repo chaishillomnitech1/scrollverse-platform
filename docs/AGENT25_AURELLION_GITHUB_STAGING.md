@@ -1,25 +1,27 @@
-# Agent 25 + AURELLION — isolated GitHub retrieval staging
+# Agent 25 + AURELLION — isolated host-neutral staging
 
 ## Purpose
 
 This integration preserves the existing Agent 25 visitor chat and adds optional, read-only evidence retrieval from AURELLION's public GitHub materials. AURELLION remains an independent additive intelligence profile; Agent 25 remains the visitor-facing coordinator.
 
-## Staging-only activation gate
+## Host-neutral staging activation gate
 
-All three values must be present on the isolated Vercel Preview project:
+The feature is disabled by default. All three application flags must be explicitly configured in the isolated staging runtime:
 
-- `AGENT25_AURELLION_GITHUB_ENABLED=true`
-- `AGENT25_AURELLION_GITHUB_STAGE=staging`
-- Vercel's built-in `VERCEL_ENV=preview`
+- \`AGENT25_DEPLOYMENT_ENV=staging\`
+- \`AGENT25_AURELLION_GITHUB_ENABLED=true\`
+- \`AGENT25_AURELLION_GITHUB_STAGE=staging\`
 
-The code fails closed unless all three checks pass. A production deployment (`VERCEL_ENV=production`) cannot activate retrieval, even if the two custom variables are accidentally copied there. Do not add these variables to Production. The feature is disabled by default.
+\`AGENT25_DEPLOYMENT_ENV\` is the application's host-neutral deployment identity. Set it in the trusted runtime configuration, never from a request header, query parameter, cookie, or visitor-controlled input. A missing or unknown value fails closed. Set it to \`production\` in production runtimes; production identity cannot enable retrieval. If the Vercel platform marker is present and says \`VERCEL_ENV=production\`, retrieval is also rejected as a contradictory production signal. No Vercel variable is required for staging on other hosts.
+
+The staging runtime must be isolated from production, with its own application instance, environment configuration, provider credentials, Redis namespace/instance, and approved origin/provider allowlists. Do not copy staging enablement flags or staging secrets into production.
 
 ## Retrieval boundary
 
 - GitHub requests use HTTPS and GET only.
-- Only the public repository `chaishillomnitech1/scrollverse-ai-legion` is queried.
-- Only five exact paths are allowlisted in `server/agent25.aurellion.ts`.
-- Only the `main` ref is used.
+- Only the public repository \`chaishillomnitech1/scrollverse-ai-legion\` is queried.
+- Only five exact paths are allowlisted in \`server/agent25.aurellion.ts\`.
+- Only the \`main\` ref is used.
 - No private repositories, arbitrary user-supplied repository names, branches, paths, GitHub search endpoint, or write endpoints are accepted.
 - File size is capped at 80 KiB each and 240 KiB total.
 - Retrieved documents are cached in process memory for five minutes.
@@ -39,12 +41,13 @@ The existing chat widget, site IDs, role selector, provider boundary, origin che
 
 ## Validation and release gates
 
-1. Run `pnpm check`, `pnpm test`, and `pnpm build` in CI.
+1. Run \`pnpm check\`, \`pnpm test\`, and \`pnpm build\` in CI.
 2. Review the actual CI logs and resolve every failure.
-3. Configure the two custom variables only in the isolated Preview project.
-4. Verify `VERCEL_ENV=preview` on the staging deployment.
-5. Test disabled-by-default behavior, production fail-closed behavior, exact path restrictions, cache expiry, API failure fallback, and citations.
-6. Validate the visitor experience on the staging domain and approved embed origin.
-7. Obtain separate approval before any production activation.
+3. Provision a dedicated staging runtime on the selected host; no specific host is required by the application code.
+4. Set the three staging application flags only in that isolated runtime.
+5. Verify the deployment identity comes from trusted runtime configuration, not visitor input.
+6. Test disabled-by-default behavior, missing/unknown environment fail-closed behavior, production rejection, exact path restrictions, cache expiry, API failure fallback, and citations.
+7. Validate the visitor experience on the staging domain and approved embed origin.
+8. Obtain separate approval before any production activation.
 
-The initial integration was merged in PR #10. This follow-up corrects citation bounds and strengthens untrusted-evidence message isolation. Neither change activates staging. Vercel project creation, Preview configuration, deployment, and visitor validation remain separate release gates. Production remains untouched.
+This change implements application-level host-neutral staging gates and documents the isolated-runtime contract. It does not provision infrastructure, enter secrets, configure DNS/domains, deploy, activate staging, or change production. A passing CI run is not evidence that a staging runtime exists or is active.
