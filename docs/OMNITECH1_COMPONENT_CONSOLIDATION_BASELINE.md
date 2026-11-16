@@ -66,16 +66,15 @@ A future `omni build verify` may coordinate repository state, dependency lockfil
 
 ## Current limitations
 
-- This baseline is a focused review of `scrollverse-platform`, not a complete fleet-wide component inventory.
-- The GitHub repository listing returned a first page of 100 repositories; additional pages must be inspected before any fleet-wide count or duplication claim.
+- The paginated GitHub repository listing returned 100 repositories at offset 0 and zero at offset 100; the accessible listing is complete as of 2026-11-16. See `docs/REPOSITORY_FLEET_INVENTORY_2026-11-16.md` for the full metadata inventory and provisional responsibility map.
+- Repository-name categories are provisional. Content-level review is still required to establish canonical projects, mirrors, archives, production usage, and actual duplicated implementations.
 - No full credential values were inspected or copied.
 - No infrastructure was provisioned, no DNS was changed, no secrets were entered, and no production deployment or merge was performed.
-- The daily 8:00 AM integrity automation was not modified in this commit. Its saved definition could not be retrieved through the available automation action during this session; do not create a duplicate schedule to work around that.
+- The daily 8:00 AM integrity automation has not been changed; its current definition must be retrieved through a working automation-management action before editing it. Do not create a duplicate schedule.
 
 ## Next implementation sequence
 
-1. Complete paginated repository inventory and identify authoritative projects versus archives, mirrors, templates, and experiments.
+1. Complete content-level classification of the 100 listed repositories and identify authoritative projects versus archives, mirrors, templates, and experiments.
 2. Compare overlapping PRs against merged code and workflow evidence.
-3. Select one small, measurable consolidation with no production impact.
-4. Implement on an isolated branch, add tests, capture CI evidence, and open a PR.
-5. Review and approve before merging; keep production activation separate.
+3. Continue with the isolated reusable Node/pnpm setup consolidation proposed in `scrollverse_commerce` PR #76.
+4. Capture passing CI evidence and review the PR before merge; keep production activation separate.
