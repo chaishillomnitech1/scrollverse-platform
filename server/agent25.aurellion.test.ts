@@ -12,7 +12,7 @@ describe("Agent 25 AURELLION GitHub staging boundary", () => {
     clearAurellionGithubCacheForTests();
     vi.stubEnv("AGENT25_AURELLION_GITHUB_ENABLED", "true");
     vi.stubEnv("AGENT25_AURELLION_GITHUB_STAGE", "staging");
-    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("AGENT25_DEPLOYMENT_ENV", "staging");
   });
 
   afterEach(() => {
@@ -21,21 +21,45 @@ describe("Agent 25 AURELLION GitHub staging boundary", () => {
     clearAurellionGithubCacheForTests();
   });
 
-  it("enables retrieval only for explicitly enabled Preview staging", () => {
+  it("enables explicitly configured staging without requiring a hosting-provider variable", () => {
     expect(isAurellionStagingEnabled({
+      AGENT25_DEPLOYMENT_ENV: "staging",
       AGENT25_AURELLION_GITHUB_ENABLED: "true",
       AGENT25_AURELLION_GITHUB_STAGE: "staging",
-      VERCEL_ENV: "preview",
     })).toBe(true);
+  });
+
+  it("fails closed when deployment identity is missing, unknown, or production", () => {
+    const featureFlags = {
+      AGENT25_AURELLION_GITHUB_ENABLED: "true",
+      AGENT25_AURELLION_GITHUB_STAGE: "staging",
+    };
+    expect(isAurellionStagingEnabled(featureFlags)).toBe(false);
     expect(isAurellionStagingEnabled({
+      ...featureFlags,
+      AGENT25_DEPLOYMENT_ENV: "preview",
+    })).toBe(false);
+    expect(isAurellionStagingEnabled({
+      ...featureFlags,
+      AGENT25_DEPLOYMENT_ENV: "production",
+      VERCEL_ENV: "preview",
+    })).toBe(false);
+  });
+
+  it("rejects contradictory Vercel production identity even if staging flags are present", () => {
+    expect(isAurellionStagingEnabled({
+      AGENT25_DEPLOYMENT_ENV: "staging",
       AGENT25_AURELLION_GITHUB_ENABLED: "true",
       AGENT25_AURELLION_GITHUB_STAGE: "staging",
       VERCEL_ENV: "production",
     })).toBe(false);
+  });
+
+  it("keeps the feature disabled when its explicit enable flag is false", () => {
     expect(isAurellionStagingEnabled({
+      AGENT25_DEPLOYMENT_ENV: "staging",
       AGENT25_AURELLION_GITHUB_ENABLED: "false",
       AGENT25_AURELLION_GITHUB_STAGE: "staging",
-      VERCEL_ENV: "preview",
     })).toBe(false);
   });
 
@@ -45,7 +69,7 @@ describe("Agent 25 AURELLION GitHub staging boundary", () => {
   });
 
   it("returns no evidence and makes no network request outside staging", async () => {
-    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("AGENT25_DEPLOYMENT_ENV", "production");
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     await expect(getAurellionGithubEvidence("AURELLION GitHub repository")).resolves.toEqual([]);

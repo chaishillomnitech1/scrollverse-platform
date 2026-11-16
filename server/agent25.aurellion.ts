@@ -45,9 +45,13 @@ let cachedDocuments: PublicDocument[] = [];
 let pendingLoad: Promise<PublicDocument[]> | null = null;
 
 export function isAurellionStagingEnabled(env: RuntimeEnv = process.env): boolean {
+  // This must be set by the isolated runtime's trusted deployment configuration.
+  // Missing, production, or unknown deployment identity always disables retrieval.
+  if (env.AGENT25_DEPLOYMENT_ENV !== "staging") return false;
+  if (env.VERCEL_ENV === "production") return false;
+
   return env.AGENT25_AURELLION_GITHUB_ENABLED === "true"
-    && env.AGENT25_AURELLION_GITHUB_STAGE === "staging"
-    && env.VERCEL_ENV === "preview";
+    && env.AGENT25_AURELLION_GITHUB_STAGE === "staging";
 }
 
 export function isGitHubEvidenceQuestion(query: string): boolean {
@@ -195,7 +199,7 @@ export function rankAurellionEvidence(
   return selected;
 }
 
-/** Public-only, exact-path, GET-only evidence retrieval. Disabled outside Vercel Preview. */
+/** Public-only, exact-path, GET-only evidence retrieval. Disabled unless the trusted runtime is explicitly staging. */
 export async function getAurellionGithubEvidence(query: string): Promise<AurellionEvidenceSource[]> {
   if (!isAurellionStagingEnabled() || !isGitHubEvidenceQuestion(query)) return [];
   try {
