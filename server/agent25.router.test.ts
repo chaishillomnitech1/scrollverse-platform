@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AGENT25_AGENTS, selectAgent } from "../shared/agent25";
-import { buildAgent25ProviderMessages } from "./agent25.router";
+import { buildAgent25ProviderMessages } from "./agent25.messages";
 
 describe("Agent 25 Omni registry", () => {
   it("defines 25 distinct specialist roles", () => {
