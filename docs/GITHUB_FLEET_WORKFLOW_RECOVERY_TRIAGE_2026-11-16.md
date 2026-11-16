@@ -27,7 +27,7 @@ Counts below are for the latest 100 runs returned by GitHub, unless fewer than 1
 | `scrollverse-ai-legion` | 1 | 80 | 20 success / 9 failure / 51 cancelled | Cancellation storm on AURELLION feature branch during rapid successive updates; latest successful PR evidence exists. |
 | `scrollverse_commerce` | 9 | 475 | 24 success / 76 failure | Recent main CI and deployment jobs failed; prior PR evidence shows formatter and Vercel provider blockers. |
 | `OmniBuilderZero` | 25 | 728 | 30 success / 70 failure | CI, E2E and docs checks passed on recent PR revisions; Vercel deployment failed; many auxiliary workflow failures require individual classification. |
-| `Chaishillomnitech1` | 70+ | 38,458 | 12 success / 87 failure / 1 cancelled | Large workflow surface; latest sampled production deployment failed at artifact download. |
+| `Chaishillomnitech1` | 73 YAML workflows (77 directory entries) | 38,458 | 12 success / 87 failure / 1 cancelled | Large workflow surface; latest sampled production deployment failed at artifact download. |
 | `Expansion-` | 50 | 8,890 | 100 success | Latest returned run is 2026-08-29; last repository push 2026-07-02; scheduled dormancy candidate. |
 | `scrollsoul-music-sync` | 15 | 7,442 | 2 success / 98 failure | Hourly content-performance workflow repeatedly fails at video-performance retrieval; dangerous paid-promotion/archive steps are present. |
 | `scrollverse-web-app` | 4 | 174 | 53 success / 24 failure / 23 cancelled | Sovereign invariant audit fails at application type-check; cancelled runs are on a clearance PR branch. |
