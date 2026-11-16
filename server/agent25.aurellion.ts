@@ -125,6 +125,32 @@ function termsFor(query: string): string[] {
   return Array.from(new Set((query.toLowerCase().match(/[a-z0-9_-]{3,}/g) ?? []).filter((term) => !ignored.has(term)))).slice(0, 24);
 }
 
+function buildBoundedExcerpt(lines: string[], start: number, end: number): { excerpt: string; lineEnd: number } {
+  const included: string[] = [];
+  let chars = 0;
+  let lineEnd = start;
+
+  for (let index = start; index < end; index += 1) {
+    const separatorLength = included.length > 0 ? 1 : 0;
+    const remaining = MAX_EXCERPT_CHARS - chars - separatorLength;
+    if (remaining <= 0) break;
+
+    const line = lines[index];
+    if (line.length > remaining) {
+      included.push(line.slice(0, remaining));
+      lineEnd = index + 1;
+      break;
+    }
+
+    included.push(line);
+    chars += separatorLength + line.length;
+    lineEnd = index + 1;
+    if (chars >= MAX_EXCERPT_CHARS) break;
+  }
+
+  return { excerpt: included.join("\n"), lineEnd };
+}
+
 export function rankAurellionEvidence(
   query: string,
   documents: PublicDocument[],
@@ -137,10 +163,11 @@ export function rankAurellionEvidence(
     const lines = document.content.split(/\r?\n/);
     for (let start = 0; start < lines.length; start += 24) {
       const end = Math.min(start + 24, lines.length);
-      const excerpt = lines.slice(start, end).join("\n");
-      const normalized = excerpt.toLowerCase();
+      const fullWindow = lines.slice(start, end).join("\n");
+      const normalized = fullWindow.toLowerCase();
       const score = terms.reduce((total, term) => total + (normalized.includes(term) ? 1 : 0), 0);
       if (score === 0) continue;
+      const bounded = buildBoundedExcerpt(lines, start, end);
       hits.push({
         title: document.path.split("/").pop() ?? document.path,
         path: document.path,
@@ -148,8 +175,8 @@ export function rankAurellionEvidence(
         gitBlobSha: document.gitBlobSha,
         sha256: document.sha256,
         lineStart: start + 1,
-        lineEnd: end,
-        excerpt: excerpt.slice(0, MAX_EXCERPT_CHARS),
+        lineEnd: bounded.lineEnd,
+        excerpt: bounded.excerpt,
         score,
       });
     }

@@ -4,6 +4,7 @@ import {
   getAurellionGithubEvidence,
   isAurellionStagingEnabled,
   isGitHubEvidenceQuestion,
+  rankAurellionEvidence,
 } from "./agent25.aurellion";
 
 describe("Agent 25 AURELLION GitHub staging boundary", () => {
@@ -74,5 +75,44 @@ describe("Agent 25 AURELLION GitHub staging boundary", () => {
     expect(sources[0].sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(sources[0].url).toContain("github.com/chaishillomnitech1/scrollverse-ai-legion");
     expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
+
+  it("fails open to an empty evidence set when the public GitHub API is unavailable", async () => {
+    const fetchMock = vi.fn(async () => new Response("unavailable", { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getAurellionGithubEvidence("AURELLION GitHub implementation")).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
+
+  it("reports only the line range actually present in a truncated citation excerpt", () => {
+    const longFirstLine = "AURELLION " + "x".repeat(900);
+    const source = {
+      path: "agents/aurellion/README.md",
+      content: longFirstLine + "\nsecond line must not be cited",
+      gitBlobSha: "0123456789abcdef",
+      sha256: "a".repeat(64),
+      url: "https://github.com/chaishillomnitech1/scrollverse-ai-legion/blob/main/agents/aurellion/README.md",
+    };
+
+    const [citation] = rankAurellionEvidence("AURELLION", [source]);
+    expect(citation.excerpt).toHaveLength(700);
+    expect(citation.lineStart).toBe(1);
+    expect(citation.lineEnd).toBe(1);
+  });
+
+  it("includes the second line in citation bounds only when its text is included", () => {
+    const source = {
+      path: "agents/aurellion/README.md",
+      content: "AURELLION " + "x".repeat(390) + "\n" + "y".repeat(400),
+      gitBlobSha: "0123456789abcdef",
+      sha256: "a".repeat(64),
+      url: "https://github.com/chaishillomnitech1/scrollverse-ai-legion/blob/main/agents/aurellion/README.md",
+    };
+
+    const [citation] = rankAurellionEvidence("AURELLION", [source]);
+    expect(citation.excerpt).toHaveLength(700);
+    expect(citation.lineStart).toBe(1);
+    expect(citation.lineEnd).toBe(2);
   });
 });
